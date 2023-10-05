@@ -5,6 +5,7 @@ const product = require('../../models/products');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const country = require('../../models/countrys');
 module.exports = {
 
     signup: async (req, res) => {
@@ -83,7 +84,7 @@ module.exports = {
 
     getProduct: async (req, res) => {
         try {
-            let products = await product.find();
+            let products = await product.find({});
             return res.status(200).send({
                 success: true,
                 data: products
@@ -93,5 +94,130 @@ module.exports = {
         }
     },
 
+getCountries: async (req, res) => {
+        try {
+            console.log("country is a ",country);
+            let countrys = await country.find();
+            console.log("inside country try");
+            return res.status(200).send({ success: true, data: countrys });
+        } catch (err) {
+            console.error('Error fetching country data:', err);
+            res.status(500).json({ success: false, error: 'Internal server error' });
+        }
+    },
 
-}
+getStates: async (req, res) => {
+  const countryName = req.query.countryName;
+
+  if (!countryName) {
+    return res.status(400).json({ error: 'Missing query parameter: countryName' });
+  }
+
+  try {
+    const uniqueStateNames = await country.distinct('STATE', { COUNTRY: countryName });
+    
+
+    if (uniqueStateNames.length === 0) {
+      return res.status(404).json({ message: 'No states found for the given country' });
+    }
+
+    return res.json({ country: countryName, states: uniqueStateNames });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+},
+
+getDetailsByPostalCode: async (req, res) => {
+  try {
+    const postalCode = parseInt(req.query.postalCode);
+
+    if (!postalCode) {
+      return res.status(400).json({ error: 'Postal code parameter is required' });
+    }
+
+    const count = await country.estimatedDocumentCount({ 'POSTAL_CODE': postalCode });
+
+    if (count === 0) {
+      return res.status(404).json({ message: 'No documents found with postal code ' + postalCode });
+    }
+
+    const distinctData = await country.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE').limit(10);
+
+    if (!distinctData || distinctData.length === 0) {
+      return res.status(404).json({ message: 'Postal code not found' });
+    }
+
+    return res.json(distinctData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+},
+
+getDetailsByCountry: async (req, res) => {
+     const countryName = req.query.countryName;
+
+  if (!countryName) {
+    return res.status(400).json({ error: 'Missing query parameter: countryName' });
+  }
+
+  try {
+    const details = await country.find({ 'COUNTRY': countryName }).select('POSTAL_CODE STATE CITY');
+
+    if (details.length === 0) {
+      return res.status(404).json({ message: 'No data found for the given country' });
+    }
+
+    return res.json(details);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+},
+
+getDetailsByCity: async (req, res) => {
+    const cityName = req.query.cityName;
+
+  if (!cityName) {
+    return res.status(400).json({ error: 'Missing query parameter: cityName' });
+  }
+
+  try {
+    // Use MongoDB's find method to get postal codes, states, and countries for the given city
+    const details = await country.find({ CITY: cityName }).select('POSTAL_CODE STATE COUNTRY');
+
+    if (details.length === 0) {
+      return res.status(404).json({ message: 'No data found for the given city' });
+    }
+
+    return res.json(details);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+},
+getDetailsByState: async (req, res) => {
+  const stateName = req.query.stateName;
+
+  if (!stateName) {
+    return res.status(400).json({ error: 'Missing query parameter: stateName' });
+  }
+
+  try {
+    const query = { 'STATE': stateName };
+    const projection = { 'POSTAL_CODE': 1, 'CITY': 1, 'COUNTRY': 1 };
+
+    const details = await country.find(query).select(projection);
+
+    if (details.length === 0) {
+      return res.status(404).json({ success: false, message: 'No data found for the given state' });
+    }
+
+    return res.json({ success: true, data: details });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+},
+};
