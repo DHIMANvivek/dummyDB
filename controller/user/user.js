@@ -142,7 +142,7 @@ getDetailsByPostalCode: async (req, res) => {
       return res.status(404).json({ message: 'No documents found with postal code ' + postalCode });
     }
 
-    const distinctData = await country.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE').limit(10);
+    const distinctData = await country.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE CITY').limit(10);
 
     if (!distinctData || distinctData.length === 0) {
       return res.status(404).json({ message: 'Postal code not found' });
