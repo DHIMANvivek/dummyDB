@@ -9,4 +9,4 @@ const countrySchema = new mongoose.Schema({
 
 countrySchema.index({ 'POSTAL_CODE': 1 });
 
-module.exports = mongoose.model('seedingCountry', countrySchema);
+module.exports = mongoose.model('seededCountry', countrySchema);
