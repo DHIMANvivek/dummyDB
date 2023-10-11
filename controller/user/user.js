@@ -149,10 +149,10 @@ getDetailsByPostalCode: async (req, res) => {
             // Insert new data into the "seededData" collection
       const newData = {
         POSTAL_CODE: postalCode,
-        COUNTRY: 'New Country',
-        COUNTY: 'New County',
-        CITY: ['New City'],
-        STATE: 'New State'
+        COUNTRY: 'Enter Country',
+        COUNTY: 'Enter City',
+        CITY: ['Enter Village/Town'],
+        STATE: 'Enter State'
       };
 
       await seededData.create(newData);
