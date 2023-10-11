@@ -172,6 +172,8 @@ getDetailsByPostalCode: async (req, res) => {
 },
 
 getDetailsByCountry: async (req, res) => {
+  const body = req.body;
+  console.log("body is ",body);
      const countryName = req.query.countryName;
 
   if (!countryName) {
