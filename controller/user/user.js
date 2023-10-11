@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const country = require('../../models/countrys');
+const seededData = require('../../models/seedingCountrys')
 module.exports = {
 
     signup: async (req, res) => {
@@ -142,10 +143,25 @@ getDetailsByPostalCode: async (req, res) => {
       return res.status(404).json({ message: 'No documents found with postal code ' + postalCode });
     }
 
-    const distinctData = await country.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE').limit(10);
+    const distinctData = await country.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE CITY').limit(10);
 
     if (!distinctData || distinctData.length === 0) {
-      return res.status(404).json({ message: 'Postal code not found' });
+            // Insert new data into the "seededData" collection
+      const newData = {
+        POSTAL_CODE: postalCode,
+        COUNTRY: 'New Country',
+        COUNTY: 'New County',
+        CITY: ['New City'],
+        STATE: 'New State'
+      };
+
+      await seededData.create(newData);
+
+      const distinctData = await seededData.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE CITY').limit(10);
+
+      return res.json(distinctData);
+      // return res.status(404).json({ message: 'No documents found with postal code ' + postalCode + '. New data inserted.' });
+      // return res.status(404).json({ message: 'Postal code not found' });
     }
 
     return res.json(distinctData);
