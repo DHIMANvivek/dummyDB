@@ -133,6 +133,8 @@ getDetailsByPostalCode: async (req, res) => {
   try {
     const postalCode = parseInt(req.query.postalCode);
 
+    const { COUNTRY, COUNTY, STATE, CITY } = req.query;
+
     if (!postalCode) {
       return res.status(400).json({ error: 'Postal code parameter is required' });
     }
@@ -146,22 +148,30 @@ getDetailsByPostalCode: async (req, res) => {
     const distinctData = await country.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE CITY').limit(10);
 
     if (!distinctData || distinctData.length === 0) {
-            // Insert new data into the "seededData" collection
-      const newData = {
-        POSTAL_CODE: postalCode,
-        COUNTRY: 'Enter Country',
-        COUNTY: 'Enter City',
-        CITY: ['Enter Village/Town'],
-        STATE: 'Enter State'
-      };
+      const existingData = await seededData.findOne({ 'POSTAL_CODE': postalCode });
 
-      await seededData.create(newData);
+      if(existingData) {
+        distinctData = await seededData.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE CITY').limit(10);
+        return res.json(distinctData);
+      }
+      else {
+        const newData = {
+          POSTAL_CODE: postalCode,
+          COUNTRY: COUNTRY,
+          COUNTY: COUNTY,
+          STATE: STATE,
+          CITY: CITY
+        };
 
-      const distinctData = await seededData.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE CITY').limit(10);
+        await seededData.create(newData);
 
-      return res.json(distinctData);
-      // return res.status(404).json({ message: 'No documents found with postal code ' + postalCode + '. New data inserted.' });
-      // return res.status(404).json({ message: 'Postal code not found' });
+        const distinctData = await seededData.find({ 'POSTAL_CODE': postalCode }).select('COUNTRY COUNTY STATE CITY').limit(10);
+
+        return res.json(distinctData);
+        // return res.status(404).json({ message: 'No documents found with postal code ' + postalCode + '. New data inserted.' });
+        // return res.status(404).json({ message: 'Postal code not found' });
+        
+      }
     }
 
     return res.json(distinctData);
@@ -171,9 +181,60 @@ getDetailsByPostalCode: async (req, res) => {
   }
 },
 
+sendPinInfo: async (req, res) => {
+  try {
+    const data = req.body;
+    console.log(data);
+    const { COUNTRY, COUNTY, STATE, CITY, POSTAL_CODE } = data;
+    console.log(parseInt(POSTAL_CODE));
+    console.log(COUNTRY);
+
+    // if (!POSTAL_CODE || !COUNTRY || !COUNTY || !STATE || !CITY) {
+    //   return res.status(400).json({ error: 'POSTAL_CODE, COUNTRY, COUNTY, STATE, and CITY parameters are required' });
+    // }
+    
+
+    let existingData = await seededData.findOne({ 'POSTAL_CODE': parseInt(POSTAL_CODE) });
+
+    if (existingData) {
+      existingData.COUNTRY = COUNTRY;
+      // existingData.COUNTY = COUNTY;
+      existingData.STATE = STATE;
+      // existingData.CITY = CITY;
+
+      await existingData.save();
+    } else {
+      const newData = {
+        POSTAL_CODE: POSTAL_CODE,
+        COUNTRY: COUNTRY,
+        // COUNTY: COUNTY,
+        STATE: STATE,
+        CITY: CITY
+      };
+
+      await seededData.create(newData);
+    }
+    console.log("updated")
+
+    return res.json({ message: 'Data updated successfully' });
+  } catch (error) {
+    console.error('Error updating data:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+},
+
+
+acceptDetailsByPostalCode: async (req, res) => {
+  try{
+    const { info } = req.body;
+    console.log("email is :", info.address.state);
+  } catch {
+    console.error('Error fetching data:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+},
+
 getDetailsByCountry: async (req, res) => {
-  const body = req.body;
-  console.log("body is ",body);
      const countryName = req.query.countryName;
 
   if (!countryName) {
