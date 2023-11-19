@@ -10,19 +10,19 @@ app.use(express.static(path.join(__dirname, "client")));
 
 // Private Key:
 // 7SyxWhjrA6HxkWzApULEeMyAo56mIB6oBI9m79EVLyg
-const publicVapidKey = 'BDDvK37Ilar67CEVw8dXCkUXKvvN5gnaVrXu8MiejuT5LGcyhf1EwrVypIv7hJ1STiW--kBJsJtX92_HGj03L-M';
-const privateVapidKey = '7SyxWhjrA6HxkWzApULEeMyAo56mIB6oBI9m79EVLyg';
+// const publicVapidKey = 'BDDvK37Ilar67CEVw8dXCkUXKvvN5gnaVrXu8MiejuT5LGcyhf1EwrVypIv7hJ1STiW--kBJsJtX92_HGj03L-M';
+// const privateVapidKey = '7SyxWhjrA6HxkWzApULEeMyAo56mIB6oBI9m79EVLyg';
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 
-webpush.setVapidDetails('mailto:googlydhiman.4236@gmail.com', publicVapidKey, privateVapidKey);
-app.post('/subscribe', (req, res) => {
-    const subscription = req.body;
-    console.log(subscription);
-    res.status(201).json({});
-    const payload = JSON.stringify({ title: 'eCommerce New Notification' });
-    webpush.sendNotification(subscription, payload).catch(err => console.error(err));
-});
+// webpush.setVapidDetails('mailto:googlydhiman.4236@gmail.com', publicVapidKey, privateVapidKey);
+// app.post('/subscribe', (req, res) => {
+//     const subscription = req.body;
+//     console.log(subscription);
+//     res.status(201).json({});
+//     const payload = JSON.stringify({ title: 'eCommerce New Notification' });
+//     webpush.sendNotification(subscription, payload).catch(err => console.error(err));
+// });
 
 
 // {
